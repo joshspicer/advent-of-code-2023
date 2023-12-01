@@ -5,8 +5,8 @@ import (
 	"fmt"
 )
 
-func run(input []string) string {
-	result := ""
+func run1(input []string) string {
+	result := "TODO"
 
 	fmt.Println(result)
 	return result
@@ -14,7 +14,7 @@ func run(input []string) string {
 }
 
 func main() {
-	run(base.ReadExampleLines())
-	// run(base.ReadPart01Lines())
-	// run(base.ReadPart02Lines())
+	run1(base.ReadExample1Lines())
+	// run1(base.ReadInputLines())
+	// run2(base.ReadInputLines())
 }
