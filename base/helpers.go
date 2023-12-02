@@ -6,12 +6,12 @@ import (
 	"strings"
 )
 
-func isDebug() bool {
+func IsDebug() bool {
 	return os.Getenv("ADVENT_DEBUG") == "true"
 }
 
 func Debug(format string, a ...interface{}) {
-	if isDebug() {
+	if IsDebug() {
 		fmt.Printf("[D] "+format+"\n", a...)
 	}
 }

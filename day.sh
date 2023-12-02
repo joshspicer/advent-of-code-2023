@@ -2,7 +2,6 @@
 
 set -e
 
-
 DAY="$1"
 
 if [ -z "$DAY" ]; then
@@ -11,5 +10,5 @@ if [ -z "$DAY" ]; then
 fi
 
 mkdir $DAY
-pwd
 cp  -r 'template/.' $DAY
+echo "Good luck!"
