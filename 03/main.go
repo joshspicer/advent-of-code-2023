@@ -12,6 +12,8 @@ type Node struct {
 	val      int
 }
 
+type HeatMap map[int]map[int][]Node
+
 func parse(input []string) ([]Node, [][]string) {
 	lineLength := len(input[0])
 
@@ -71,8 +73,39 @@ func parse(input []string) ([]Node, [][]string) {
 	return nodes, symbolGrid
 }
 
-func run1(input []string) int {
+func calculateHeatMap(nodes []Node, symbolGrid [][]string) (int, HeatMap) {
+	sum := 0
+	heatMap := make(HeatMap)
 
+	for _, node := range nodes {
+		for row := node.row - 1; row <= node.row+1; row++ {
+			for col := node.startCol - 1; col <= node.endCol+1; col++ {
+				if row < 0 || row >= len(symbolGrid) {
+					continue
+				}
+				if col < 0 || col >= len(symbolGrid[row]) {
+					continue
+				}
+				if symbolGrid[row][col] != "" {
+					sum += node.val
+
+					if _, ok := heatMap[row]; !ok {
+						heatMap[row] = make(map[int][]Node)
+					}
+					if _, ok := heatMap[row][col]; !ok {
+						heatMap[row][col] = make([]Node, 0)
+					}
+					heatMap[row][col] = append(heatMap[row][col], node)
+
+				}
+
+			}
+		}
+	}
+	return sum, heatMap
+}
+
+func run1(input []string) int {
 	nodes, symbolGrid := parse(input)
 
 	// Print all nodes
@@ -85,36 +118,45 @@ func run1(input []string) int {
 		}
 	}
 
-	sum := 0
-
-	for _, node := range nodes {
-		var hasSymbol bool
-		for row := node.row - 1; row <= node.row+1; row++ {
-			for col := node.startCol - 1; col <= node.endCol+1; col++ {
-				if row < 0 || row >= len(symbolGrid) {
-					continue
-				}
-				if col < 0 || col >= len(symbolGrid[row]) {
-					continue
-				}
-				if symbolGrid[row][col] != "" {
-					hasSymbol = true
-					base.Debug("Node '%v' has adjacent symbol '%v' at (%v,%v)", node, symbolGrid[row][col], row, col)
-					sum += node.val
-				}
-			}
-		}
-		if !hasSymbol {
-			base.Debug("Node '%v' has no symbols adjacent to it!", node)
-		}
-	}
+	sum, _ := calculateHeatMap(nodes, symbolGrid)
 
 	fmt.Println(sum)
 	return sum
 }
 
+func run2(input []string) int {
+	nodes, symbolGrid := parse(input)
+	_, heatMap := calculateHeatMap(nodes, symbolGrid)
+
+	result := 0
+
+	for row, line := range symbolGrid {
+		for col, symbol := range line {
+			if symbol != "*" {
+				continue
+			}
+
+			if _, ok := heatMap[row]; !ok {
+				continue
+			}
+			if _, ok := heatMap[row][col]; !ok {
+				continue
+			}
+			if len(heatMap[row][col]) == 2 {
+				a := heatMap[row][col][0]
+				b := heatMap[row][col][1]
+				result += a.val * b.val
+			}
+		}
+	}
+
+	fmt.Println(result)
+	return result
+}
+
 func main() {
-	run1(base.ReadExample1Lines())
+	// run1(base.ReadExample1Lines())
 	run1(base.ReadInputLines())
-	// run2(base.ReadInputLines())
+	// run2(base.ReadExample1Lines())
+	run2(base.ReadInputLines())
 }
