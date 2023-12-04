@@ -3,6 +3,7 @@ package base
 import (
 	"fmt"
 	"os"
+	"strconv"
 	"strings"
 )
 
@@ -14,6 +15,14 @@ func Debug(format string, a ...interface{}) {
 	if IsDebug() {
 		fmt.Printf("[D] "+format+"\n", a...)
 	}
+}
+
+func AtoiOrPanic(s string) int {
+	i, err := strconv.Atoi(s)
+	if err != nil {
+		panic(err)
+	}
+	return i
 }
 
 func ReadInputLines() []string {
