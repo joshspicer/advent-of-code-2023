@@ -98,6 +98,7 @@ func run1(input []string) int {
 
 func run2(input []string) int {
 	originalTicketMap := parse(input)
+	memo := make(map[int]int, len(originalTicketMap))
 
 	numTicketsProcessed := 0
 	ticketStack := []Ticket{}
@@ -115,8 +116,14 @@ func run2(input []string) int {
 		ticketStack = ticketStack[1:]
 
 		// Count how many numbers match
-		// TODO: Memoize
-		numsMatching := countIntersection(ticket.winningNums, ticket.myNums)
+		var numsMatching int
+		if _, ok := memo[ticket.cardNum]; ok {
+			// Reuse our past work
+			numsMatching = memo[ticket.cardNum]
+		} else {
+			numsMatching = countIntersection(ticket.winningNums, ticket.myNums)
+			memo[ticket.cardNum] = numsMatching
+		}
 
 		if numsMatching == 0 {
 			continue
@@ -134,9 +141,6 @@ func run2(input []string) int {
 }
 
 func main() {
-	// run1(base.ReadExample1Lines())
-	// run1(base.ReadInputLines())
-
-	// run2(base.ReadExample1Lines())
+	run1(base.ReadInputLines())
 	run2(base.ReadInputLines())
 }
