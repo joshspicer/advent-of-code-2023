@@ -54,6 +54,13 @@ func Reverse[T any](list []T) []T {
 	return list
 }
 
+func FilterWhitespace(data string) []string {
+	return Filter(strings.Split(data, " "), func(s string) bool {
+		// Remove whitespace or empty strings
+		return s != "" && s != " "
+	})
+}
+
 func Filter[T any](data []T, f func(T) bool) []T {
 
 	acc := make([]T, 0, len(data))
@@ -64,4 +71,16 @@ func Filter[T any](data []T, f func(T) bool) []T {
 		}
 	}
 	return acc
+}
+
+func Map[T, V any](data []T, f func(T) V) []V {
+
+	output := make([]V, len(data))
+
+	for i, x := range data {
+		o := f(x)
+		output[i] = o
+	}
+
+	return output
 }
