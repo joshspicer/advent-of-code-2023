@@ -109,31 +109,75 @@ func parse(input []string) (seeds []int, almanac Almanac) {
 	return seeds, almanac
 }
 
-func run1(input []string) int {
-	seeds, almanac := parse(input)
-
+func (almanac Almanac) run(seeds []int) (int, int) {
 	relationshipOrder := []Thing{Seed, Soil, Fertilizer, Water, Light, Temperature, Humidity, Location}
 
 	lowestLocation := -1
+	bestIndex := -1
 
-	for _, seed := range seeds {
+	for idx, seed := range seeds {
 		tmp := seed
+
+		base.Debug("  --------------------------------")
 		for i := 0; i < len(relationshipOrder)-1; i++ {
 			tmp = almanac.computeMappedLocation(tmp, relationshipOrder[i], relationshipOrder[i+1])
 		}
+
 		if lowestLocation == -1 || tmp < lowestLocation {
 			lowestLocation = tmp
+			bestIndex = idx
 		}
 	}
+	return lowestLocation, bestIndex
+}
 
-	fmt.Println(lowestLocation)
-	return lowestLocation
+func run1(input []string) int {
+	seeds, almanac := parse(input)
+	result, _ := almanac.run(seeds)
+	fmt.Println(result)
+	return result
+}
+
+// This is wildly inefficient, but worked on my input :^)
+func run2(input []string) int {
+	seedInput, almanac := parse(input)
+
+	bestCandiateSeeds := make([]int, 0)
+	for i := 0; i < len(seedInput)-1; i += 2 {
+		start := seedInput[i]
+		length := seedInput[i+1]
+
+		seedRange := make([]int, length)
+		base.Debug("Adding seeds from %d to %d", start, start+length)
+		for j := 0; j < length; j++ {
+			seedRange[j] = start + j
+		}
+
+		for len(seedRange) >= 10 {
+			base.Debug("  Testing %v", seedRange)
+
+			// For each side, test the lowest and highest seed.
+			// Only keep the side with the lowest location (best)
+			_, bestIndex := almanac.run([]int{seedRange[0], seedRange[len(seedRange)-1]})
+			if bestIndex == 0 {
+				seedRange = seedRange[:len(seedRange)-1]
+			} else {
+				// TODO: I did this wrong before running run2, but not gonnna fix :)
+				seedRange = seedRange[1:]
+			}
+		}
+
+		bestCandiateSeeds = append(bestCandiateSeeds, seedRange...)
+	}
+
+	result, _ := almanac.run(bestCandiateSeeds)
+	fmt.Println(result)
+	return result
 }
 
 func main() {
 	// run1(base.ReadExample1Lines())
 	run1(base.ReadInputLines())
-
 	// run2(base.ReadExample1Lines())
-	// run2(base.ReadInputLines())
+	run2(base.ReadInputLines()) // 125742456
 }

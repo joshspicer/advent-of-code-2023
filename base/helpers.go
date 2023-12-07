@@ -84,3 +84,20 @@ func Map[T, V any](data []T, f func(T) V) []V {
 
 	return output
 }
+
+// From a single array, group elements into a list of arrays with size n
+func GroupBy[T any](data []T, n int, requireAllGroupsEqualSize bool) [][]T {
+
+	// Ensure each group is the same size
+	if requireAllGroupsEqualSize && len(data)%n != 0 {
+		panic(fmt.Sprintf("Cannot group %d elements into groups of %d", len(data), n))
+	}
+
+	output := make([][]T, 0)
+
+	for i := 0; i < len(data); i += n {
+		output = append(output, data[i:i+n])
+	}
+
+	return output
+}
