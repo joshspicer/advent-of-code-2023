@@ -3,6 +3,7 @@ package main
 import (
 	"base"
 	"fmt"
+	"os"
 	"sort"
 	"strings"
 )
@@ -16,7 +17,8 @@ type Hand struct {
 type Card int
 
 const (
-	_2 Card = iota
+	J Card = iota // (Part 2 Only)
+	_2
 	_3
 	_4
 	_5
@@ -25,7 +27,7 @@ const (
 	_8
 	_9
 	T
-	J
+	// J (Part 1 Only)
 	Q
 	K
 	A // Highest
@@ -49,16 +51,24 @@ func (d Strength) String() string {
 		"FullHouse", "FourOfAKind", "FiveOfAKind"}[d]
 }
 
+// func (d Card) String() string {
+// 	return []string{
+// 		"2", "3", "4", "5",
+// 		"6", "7", "8", "9", "T",
+// 		"J", "Q", "K", "A"}[d]
+// }
+
 func (d Card) String() string {
 	return []string{
-		"2", "3", "4", "5",
+		"J", "2", "3", "4", "5",
 		"6", "7", "8", "9", "T",
-		"J", "Q", "K", "A"}[d]
+		"Q", "K", "A"}[d]
 }
 
 var MapStringToCard = func() map[string]Card {
 	m := make(map[string]Card)
-	for c := _2; c <= A; c++ {
+	// for c := _2; c <= A; c++ {
+	for c := J; c <= A; c++ {
 		m[c.String()] = c
 	}
 	return m
@@ -82,54 +92,84 @@ func parseLine(line string) ([]Card, int) {
 }
 
 func computeHandStrength(hand []Card) Strength {
-	if len(hand) != 5 {
-		panic("Invalid hand")
-	}
-	counts := make(map[Card]int)
-	uniqueCards := 0
-	for _, card := range hand {
 
-		if _, ok := counts[card]; !ok {
-			uniqueCards++
+	// If 5 jokers, exit early
+	for idx, c := range hand {
+		if c != J {
+			break
 		}
-
-		counts[card]++
-
-		if counts[card] == 5 {
+		if idx == len(hand)-1 {
 			return FiveOfAKind
 		}
 	}
 
-	if uniqueCards == 2 {
-		for _, count := range counts {
-			if count == 4 {
-				return FourOfAKind
+	piles := make([][]Card, 0)
+	pileName := []Card{_2, _3, _4, _5, _6, _7, _8, _9, T, Q, K, A}
+	wildCards := 0
+	for _, t := range pileName {
+		// Grab every card of this type
+		pile := make([]Card, 0)
+		for _, c := range hand {
+			if c == t {
+				pile = append(pile, c)
 			}
-			if count == 3 {
-				return FullHouse
+		}
+		if len(pile) > 0 {
+			piles = append(piles, pile)
+		}
+	}
+
+	for _, c := range hand {
+		if c == J {
+			wildCards++
+		}
+	}
+
+	// Sort the piles by size
+	sort.SliceStable(piles, func(l, r int) bool {
+		return len(piles[l]) > len(piles[r])
+	})
+
+	//If there's wildcards, add to the largest group until 5 card, then next group...
+	for wildCards > 0 {
+		for idx, pile := range piles {
+			pileLength := len(pile)
+			for pileLength < 5 && wildCards > 0 {
+				piles[idx] = append(piles[idx], J)
+				wildCards--
+				pileLength++
 			}
 		}
 	}
 
-	if uniqueCards == 3 {
-		for _, count := range counts {
-			if count == 3 {
-				return ThreeOfAKind
-			}
-			if count == 2 {
-				return TwoPair
-			}
-		}
+	base.Debug("Piles: %v", piles)
+
+	if len(piles[0]) == 5 {
+		return FiveOfAKind
 	}
 
-	if uniqueCards == 4 {
+	if len(piles[0]) == 4 {
+		return FourOfAKind
+	}
+
+	if len(piles[0]) == 3 {
+		if len(piles[1]) == 2 {
+			return FullHouse
+		}
+		return ThreeOfAKind
+	}
+
+	if len(piles[0]) == 2 {
+		if len(piles[1]) == 2 {
+			return TwoPair
+		}
 		return OnePair
 	}
 
 	return HighCard
 }
 
-func run1(input []string) int {
+func run(input []string) int {
 	result := 0
 
 	hands := make([]Hand, 0)
@@ -189,8 +229,15 @@ func run1(input []string) int {
 }
 
 func main() {
-	// run1(base.ReadExample1Lines())
-	run1(base.ReadInputLines()) // 248569531
 
-	// run2(base.ReadInputLines())
+	// If argument present, pass to computeHandStrength
+	if len(os.Args) > 1 {
+		hand := parseHand(os.Args[1])
+		strength := computeHandStrength(hand)
+		base.Debug("%v", strength)
+		return
+	}
+
+	// run(base.ReadExample1Lines()) // Part 1: 6440, Part 2: 5905
+	run(base.ReadInputLines()) // Part 1: 248569531, Part 2: 250382098
 }
