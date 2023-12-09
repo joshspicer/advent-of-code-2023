@@ -5,8 +5,8 @@ import (
 	"fmt"
 )
 
-func run1(input []string) string {
-	result := "TODO"
+func run1(input []string) int {
+	result := -1
 
 	fmt.Println(result)
 	return result
