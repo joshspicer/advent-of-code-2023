@@ -37,6 +37,10 @@ func ReadExample2Lines() []string {
 	return readLines("example.2.txt")
 }
 
+func ReadExample3Lines() []string {
+	return readLines("example.3.txt")
+}
+
 func readLines(file string) []string {
 	content, err := os.ReadFile(file)
 	if err != nil {
@@ -100,4 +104,29 @@ func GroupBy[T any](data []T, n int, requireAllGroupsEqualSize bool) [][]T {
 	}
 
 	return output
+}
+
+// =====
+// GCD and LCM borrowed from
+// https://siongui.github.io/2017/06/03/go-find-lcm-by-gcd/
+// =====
+// greatest common divisor (GCD) via Euclidean algorithm
+func GCD(a, b int) int {
+	for b != 0 {
+		t := b
+		b = a % b
+		a = t
+	}
+	return a
+}
+
+// find Least Common Multiple (LCM) via GCD
+func LCM(a, b int, integers ...int) int {
+	result := a * b / GCD(a, b)
+
+	for i := 0; i < len(integers); i++ {
+		result = LCM(result, integers[i])
+	}
+
+	return result
 }

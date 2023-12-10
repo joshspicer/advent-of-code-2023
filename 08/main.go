@@ -12,8 +12,6 @@ type Node struct {
 	right string
 }
 
-// AAA = (BBB, CCC)
-
 var nodeRegex = regexp.MustCompile(`(\w+) = \((\w+), (\w+)`)
 
 func parseMap(input []string) map[string]Node {
@@ -37,27 +35,10 @@ func parseMap(input []string) map[string]Node {
 	}
 
 	return m
-
 }
 
-func run(steps string, startingNode string, nodes map[string]Node) int {
-	count := 0
-	currentNode := nodes[startingNode]
-	target := "ZZZ" // Part 1
-	for {
-		step := steps[count%len(steps)]
-		count++
-		if ok, nextNode := testMove(nodes, currentNode, step, target); ok {
-			break
-		} else {
-			currentNode = nextNode
-		}
-	}
-	return count
-}
-
-func testMove(nodes map[string]Node, currentNode Node, step byte, target string) (bool, Node) {
-	base.Debug("Move %c from %s", step, currentNode.from)
+func testMove(nodes map[string]Node, currentNode Node, step byte) (bool, Node) {
+	base.Debug("   Move %c from %s", step, currentNode.from)
 
 	var nextNode Node
 	switch step {
@@ -66,31 +47,71 @@ func testMove(nodes map[string]Node, currentNode Node, step byte, target string)
 		base.Debug("  to %s", nextNode.from)
 	case 'R':
 		nextNode = nodes[currentNode.right]
-		base.Debug("  to %s", nextNode.from)
+		base.Debug("     to %s", nextNode.from)
 	default:
 		panic("Unknown step:")
 	}
 
-	return nextNode.from == target, nextNode
+	return nextNode.from[2] == 'Z', nextNode
+}
+
+func getStartingLocations2(nodes map[string]Node) []string {
+	var startingLocations []string = make([]string, 0)
+	for _, node := range nodes {
+		if node.from[2] == 'A' {
+			startingLocations = append(startingLocations, node.from)
+		}
+	}
+	return startingLocations
 }
 
 func run1(input []string) int {
 	count := 0
 	steps := input[0] // Either L or R
 	nodes := parseMap(input[2:])
-	count = run(steps, "AAA", nodes)
-
+	currentNode := nodes["AAA"]
+	for {
+		step := steps[count%len(steps)]
+		count++
+		if ok, nextNode := testMove(nodes, currentNode, step); ok {
+			break
+		} else {
+			currentNode = nextNode
+		}
+	}
 	fmt.Println(count)
 	return count
 }
 
-// func run2(input []string) int {
-// }
+func run2(input []string) int {
+	steps := input[0] // Either L or R
+	nodes := parseMap(input[2:])
+	startingLocations := getStartingLocations2(nodes)
+	base.Debug("Starting locations: %v", startingLocations)
+
+	stepsToReachZ := make([]int, len(startingLocations))
+
+	for idx, startingLocation := range startingLocations {
+		count := 0
+		location := startingLocation
+		for {
+			step := steps[count%len(steps)]
+			count++
+			if done, nextLocation := testMove(nodes, nodes[location], step); done {
+				stepsToReachZ[idx] = count
+				break
+			} else {
+				location = nextLocation.from
+			}
+		}
+	}
+
+	lcm := base.LCM(stepsToReachZ[0], stepsToReachZ[1], stepsToReachZ[2:]...)
+	fmt.Println(lcm)
+	return lcm
+}
 
 func main() {
-	// run1(base.ReadExample2Lines())
-	run1(base.ReadInputLines()) // 17287
-
-	// run2(base.ReadExample3Lines())
-	// run2(base.ReadInputLines())
+	run1(base.ReadInputLines())
+	run2(base.ReadInputLines())
 }
